@@ -1,0 +1,11 @@
+services:
+  orcaslicer:
+    image: orca-orcaslicer_arm
+    ports:
+      - "6901:6901"
+    environment:
+      - VNC_PW=password
+    user: root
+    privileged: true
+    devices:
+      - /dev/dri:/dev/dri
