@@ -1,6 +1,7 @@
 services:
   orcaslicer:
-    image: orca-orcaslicer_arm
+    build: .
+    platform: linux/arm64
     ports:
       - "6901:6901"
     environment:
@@ -9,3 +10,7 @@ services:
     privileged: true
     devices:
       - /dev/dri:/dev/dri
+    volumes:
+      - ./config:/home/kasm-user/.config/OrcaSlicer
+    cap_add:
+      - SYS_NICE
