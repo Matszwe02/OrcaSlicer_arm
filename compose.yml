@@ -3,7 +3,7 @@ services:
     build: .
     platform: linux/arm64
     ports:
-      - "6901:6901"
+      - 6901:6901
     environment:
       - VNC_PW=password
     user: root
