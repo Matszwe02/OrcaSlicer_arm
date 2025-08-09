@@ -33,10 +33,6 @@ FROM ghcr.io/linuxserver/baseimage-selkies:arm64v8-ubuntunoble-7b3ee6a7-ls67
 
 ENV TITLE="OrcaSlicer"
 
-ENV HOME /home/kasm-default-profile
-ENV STARTUPDIR /dockerstartup
-ENV INST_SCRIPTS $STARTUPDIR/install
-WORKDIR $HOME
 
 COPY --from=BUILDER /opt/OrcaSlicer/build/package /opt/orca-slicer
 COPY --from=BUILDER /opt/OrcaSlicer/resources/images/OrcaSlicer.png /usr/share/selkies/www/icon.png
