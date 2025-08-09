@@ -41,15 +41,18 @@ WORKDIR $HOME
 COPY --from=BUILDER /opt/OrcaSlicer/build/package /opt/orca-slicer
 COPY --from=BUILDER /opt/OrcaSlicer/resources/images/OrcaSlicer.png /usr/share/selkies/www/icon.png
 
-RUN apt-get update
-RUN apt-get install -y libwebkit2gtk-4.1-dev
-RUN apt-get clean && \
+RUN apt-get update && \
+    apt-get install -y libwebkit2gtk-4.1-dev && \
+    apt-get clean && \
     rm -rf \
         /tmp/* \
         /var/lib/apt/lists/* \
         /var/tmp/*
 
 ENV PATH="/opt/orca-slicer/bin/:$PATH"
+ENV MAX_RES=1920x1080
+ENV NO_DECOR=true
+
 COPY ./root/defaults /defaults
 
 EXPOSE 3000
