@@ -3,14 +3,11 @@ services:
     build: .
     platform: linux/arm64
     ports:
-      - 6901:6901
-    environment:
-      - VNC_PW=password
-    user: root
-    privileged: true
+      - 3000:3000
+      - 3001:3001
     devices:
       - /dev/dri:/dev/dri
     volumes:
-      - ./config:/home/kasm-user/.config/OrcaSlicer
+      - ./orca-config:/config/.config/OrcaSlicer
     cap_add:
       - SYS_NICE
