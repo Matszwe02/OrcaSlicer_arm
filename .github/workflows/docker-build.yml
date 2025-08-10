@@ -28,15 +28,17 @@ jobs:
 
       - name: Monitor resources in real time
         run: |
-          echo "Timestamp,CPU(%),Memory(MB),Disk(%)"
-          while true; do
-            ts=$(date "+%Y-%m-%d %H:%M:%S")
-            cpu=$(top -b -n1 | grep "Cpu(s)" | awk '{print $2+$4}')
-            mem=$(free -m | awk '/Mem:/ {print $3}')
-            disk=$(df / | tail -1 | awk '{print $5}')
-            echo "$ts,$cpu,$mem,$disk"
-            sleep 5
-          done
+          nohup bash -c '
+            echo "Timestamp,CPU(%),Memory(MB),Disk(%)"
+            while true; do
+              ts=$(date "+%Y-%m-%d %H:%M:%S")
+              cpu=$(top -b -n1 | grep "Cpu(s)" | awk "{print \$2+\$4}")
+              mem=$(free -m | awk "/Mem:/ {print \$3}")
+              disk=$(df / | tail -1 | awk "{print \$5}")
+              echo "$ts,$cpu,$mem,$disk"
+              sleep 5
+            done
+          ' > /dev/stdout &
 
       - name: Build and push Docker image
         run: |
