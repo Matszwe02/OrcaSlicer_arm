@@ -42,15 +42,27 @@ jobs:
           libgtk-3-dev libmspack-dev libsecret-1-dev libsoup2.4-dev libssl-dev libudev-dev libwayland-dev \
           libwebkit2gtk-4.1-dev libxkbcommon-dev locales locales-all m4 pkgconf sudo wayland-protocols wget libfuse2t64
 
+      - name: Detect build script
+        id: detect_build_script
+        run: |
+          if [ -f BuildLinux.sh ]; then
+            echo "build_script=BuildLinux.sh" >> $GITHUB_OUTPUT
+          elif [ -f build_linux.sh ]; then
+            echo "build_script=build_linux.sh" >> $GITHUB_OUTPUT
+          else
+            echo "No build script found!"
+            exit 1
+          fi
+
+      - name: Run build script
+        run: |
+          chmod +x ${{ steps.detect_build_script.outputs.build_script }}
+          sudo ./${{ steps.detect_build_script.outputs.build_script }} -ur
       - name: Install dependencies from build_linux.sh
         shell: bash
-        run: if [ -f ./BuildLinux.sh ]; then
-              chmod +x ./BuildLinux.sh
-              sudo ./BuildLinux.sh -ur
-            else
-              chmod +x ./build_linux.sh
-              sudo ./build_linux.sh -ur
-            fi
+        run: |
+          chmod +x ${{ steps.detect_build_script.outputs.build_script }}
+          sudo ./${{ steps.detect_build_script.outputs.build_script }} -ur
 
       - name: Fix permissions
         shell: bash
@@ -61,25 +73,13 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/deps/build
           mkdir -p ${{ github.workspace }}/deps/build/destdir
-          if [ -f ./BuildLinux.sh ]; then
-            chmod +x ./BuildLinux.sh
-            sudo ./BuildLinux.sh -dr
-          else
-            chmod +x ./build_linux.sh
-            sudo ./build_linux.sh -dr
-          fi
+          sudo ./${{ steps.detect_build_script.outputs.build_script }} -dr
 
       - name: Build slicer
         shell: bash
         env:
           CMAKE_PREFIX_PATH: ${{ github.workspace }}/deps/build/destdir/usr/local
-        run: if [ -f ./BuildLinux.sh ]; then
-              chmod +x ./BuildLinux.sh
-              sudo ./BuildLinux.sh -sr
-            else
-              chmod +x ./build_linux.sh
-              sudo ./build_linux.sh -sr
-            fi
+        run: sudo ./${{ steps.detect_build_script.outputs.build_script }} -sr
 
       - name: Upload artifacts Ubuntu
         uses: actions/upload-artifact@v4
