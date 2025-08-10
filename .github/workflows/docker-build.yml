@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Call OrcaSlicer Build Workflow
         id: call-build
-        uses: Matszwe02/OrcaSlicer_arm/.github/workflows/build-ocaslicer.yml@master
+        uses: Matszwe02/OrcaSlicer_arm/.github/workflows/build-orcaslicer.yml@master
         with:
           secrets: inherit # Pass all secrets to the called workflow
 
