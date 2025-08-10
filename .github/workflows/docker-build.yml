@@ -27,7 +27,7 @@ jobs:
             echo "RELEASE_VERSION=$LATEST_RELEASE" >> $GITHUB_OUTPUT
           fi
       - name: Clone repository
-        run: git clone --branch ${{ steps.get_version.outputs.RELEASE_VERSION }} --depth 1 https://github.com/softfever/orcaslicer.git .
+        run: git clone --branch ${{ steps.get_version.outputs.RELEASE_VERSION }} https://github.com/softfever/orcaslicer.git .
 
       - uses: lukka/get-cmake@latest
         with:
@@ -44,7 +44,7 @@ jobs:
 
       - name: Install dependencies from build_linux.sh
         shell: bash
-        run: sudo ./build_linux.sh -ur
+        run: ls -la && sudo ./build_linux.sh -ur
 
       - name: Fix permissions
         shell: bash
