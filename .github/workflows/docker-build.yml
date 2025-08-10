@@ -1,19 +1,53 @@
 name: Build Docker Image
 
 on:
-  push:
-    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight UTC
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'OrcaSlicer Release Tag to build'
+        required: false
+        type: string
 
 jobs:
+  build-orcaslicer-artifact:
+    runs-on: ubuntu-latest
+    outputs:
+      artifact_name: ${{ steps.call-build.outputs.artifact_name }}
+      artifact_path: ${{ steps.call-build.outputs.artifact_path }}
+    steps:
+      - name: Call OrcaSlicer Build Workflow
+        id: call-build
+        uses: ./.github/workflows/build-ocaslicer.yml
+        with:
+          secrets: inherit # Pass all secrets to the called workflow
+
   build-and-push:
-    runs-on: ubuntu-22.04
+    needs: build-orcaslicer-artifact
+    runs-on: ubuntu-latest
     permissions:
       contents: read
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Get OrcaSlicer release version
+        id: get_version
+        run: |
+          if [ -n "${{ github.event.inputs.release_tag }}" ]; then
+            echo "RELEASE_VERSION=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+          else
+            LATEST_RELEASE=$(wget -q -O- "https://api.github.com/repos/SoftFever/OrcaSlicer/releases/latest" | grep -oP '"tag_name": "\K(.*?)",$' | head -n 1 | sed 's/",$//')
+            echo "RELEASE_VERSION=$LATEST_RELEASE" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download OrcaSlicer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-orcaslicer-artifact.outputs.artifact_name }}
+          path: ./downloaded_artifact
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -26,25 +60,23 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Monitor resources and build in parallel
+      - name: Check if release image already exists
+        id: check_image
         run: |
-          bash -c '
-            # Start monitor
-            while true; do
-              ts=$(date "+%Y-%m-%d %H:%M:%S")
-              cpu=$(top -b -n1 | grep "Cpu(s)" | awk "{print \$2+\$4}")
-              mem=$(free -m | awk "/Mem:/ {print \$3}")
-              disk=$(df / | tail -1 | awk "{print \$5}")
-              echo "$ts,$cpu,$mem,$disk"
-              sleep 5
-            done
-          ' &
-          MONITOR_PID=$!
-          # Run build
+          if docker manifest inspect matszwe02/orcaslicer-arm:${{ steps.get_version.outputs.RELEASE_VERSION }} >/dev/null 2>&1; then
+            echo "${{ steps.get_version.outputs.RELEASE_VERSION }} already built"
+            echo "SKIP_BUILD=true" >> $GITHUB_OUTPUT
+          else
+            echo "SKIP_BUILD=false" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+
+      - name: Build and push Docker image (release)
+        if: steps.check_image.outputs.SKIP_BUILD == 'false'
+        run: |
+          # Copy the downloaded artifact contents to the Docker build context
+          cp -r ./downloaded_artifact/* .
           docker buildx build --platform linux/arm64 \
-            --build-arg VERSION=latest \
-            --build-arg QEMU_CPU_CORES=2 \
-            -t matszwe02/orcaslicer-arm:latest \
+            --build-arg VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} \
+            -t matszwe02/orcaslicer-arm:${{ steps.get_version.outputs.RELEASE_VERSION }} \
             --push .
-          # Kill monitor when done
-          kill $MONITOR_PID

@@ -1,0 +1,22 @@
+FROM ghcr.io/linuxserver/baseimage-selkies:arm64v8-ubuntunoble-7b3ee6a7-ls67
+
+ENV TITLE="OrcaSlicer"
+
+COPY package /opt/orca-slicer
+
+RUN apt-get update && \
+    apt-get install -y libwebkit2gtk-4.1-dev && \
+    apt-get clean && \
+    rm -rf \
+        /tmp/* \
+        /var/lib/apt/lists/* \
+        /var/tmp/*
+
+ENV PATH="/opt/orca-slicer/bin/:$PATH"
+ENV MAX_RES=1920x1080
+ENV NO_DECOR=true
+
+COPY ./root/defaults /defaults
+
+EXPOSE 3000
+VOLUME /config
