@@ -44,7 +44,13 @@ jobs:
 
       - name: Install dependencies from build_linux.sh
         shell: bash
-        run: ls -la && sudo ./build_linux.sh -ur
+        run: if [ -f ./BuildLinux.sh ]; then
+              chmod +x ./BuildLinux.sh
+              sudo ./BuildLinux.sh -ur
+            else
+              chmod +x ./build_linux.sh
+              sudo ./build_linux.sh -ur
+            fi
 
       - name: Fix permissions
         shell: bash
@@ -55,13 +61,25 @@ jobs:
         run: |
           mkdir -p ${{ github.workspace }}/deps/build
           mkdir -p ${{ github.workspace }}/deps/build/destdir
-          ./build_linux.sh -dr
+          if [ -f ./BuildLinux.sh ]; then
+            chmod +x ./BuildLinux.sh
+            sudo ./BuildLinux.sh -dr
+          else
+            chmod +x ./build_linux.sh
+            sudo ./build_linux.sh -dr
+          fi
 
       - name: Build slicer
         shell: bash
         env:
           CMAKE_PREFIX_PATH: ${{ github.workspace }}/deps/build/destdir/usr/local
-        run: ./build_linux.sh -sr
+        run: if [ -f ./BuildLinux.sh ]; then
+              chmod +x ./BuildLinux.sh
+              sudo ./BuildLinux.sh -sr
+            else
+              chmod +x ./build_linux.sh
+              sudo ./build_linux.sh -sr
+            fi
 
       - name: Upload artifacts Ubuntu
         uses: actions/upload-artifact@v4
