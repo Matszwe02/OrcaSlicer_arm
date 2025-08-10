@@ -53,7 +53,7 @@ jobs:
 
       - name: Patch install script
         run: |
-          sed -i 's|BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON"|BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON -DCMAKE_SKIP_DOWNLOAD_VERIFY_HASH=ON"|g' ./${{ steps.detect_build_script.outputs.build_script }}
+          sed -i 's|cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}|cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS} -DCMAKE_SKIP_DOWNLOAD_VERIFY_HASH=ON|g' ./${{ steps.detect_build_script.outputs.build_script }}
 
       - name: Fix permissions
         shell: bash
