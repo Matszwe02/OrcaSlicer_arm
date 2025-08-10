@@ -17,8 +17,18 @@ jobs:
       artifact_name: OrcaSlicer_Linux_arm64
       artifact_path: ./build/package
     steps:
+      - name: Get OrcaSlicer release version
+        id: get_version
+        run: |
+          if [ -n "${{ github.event.inputs.release_tag }}" ]; then
+            echo "RELEASE_VERSION=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+          else
+            LATEST_RELEASE=$(wget -q -O- "https://api.github.com/repos/SoftFever/OrcaSlicer/releases/latest" | grep -oP '"tag_name": "\K(.*?)",$' | head -n 1 | sed 's/",$//')
+            echo "RELEASE_VERSION=$LATEST_RELEASE" >> $GITHUB_OUTPUT
+          fi
       - name: Clone repository
-        run: git clone https://github.com/softfever/orcaslicer.git .
+        # run: git clone https://github.com/softfever/orcaslicer.git .
+        run: wget https://github.com/SoftFever/OrcaSlicer/archive/refs/tags/${{ steps.get_version.outputs.RELEASE_VERSION }}.tar.gz -O /opt/OrcaSlicer.tar.gz && tar -xzvf /opt/OrcaSlicer.tar.gz .
 
       - uses: lukka/get-cmake@latest
         with:
