@@ -12,7 +12,7 @@ on:
 
 jobs:
   build-orcaslicer-artifact:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-22.04-arm
     outputs:
       artifact_name: OrcaSlicer_Linux_arm64
       artifact_path: ./build/package
@@ -55,21 +55,21 @@ jobs:
             exit 1
           fi
 
-      - name: Install dependencies from build_linux.sh
-        shell: bash
-        run: |
-          chmod +x ${{ steps.detect_build_script.outputs.build_script }}
-          sudo ./${{ steps.detect_build_script.outputs.build_script }} -ur
-
       - name: Fix permissions
         shell: bash
         run: sudo chown $USER -R ./
 
-      - name: Build dependencies
+      - name: Install dependencies from build_linux.sh
         shell: bash
         run: |
           mkdir -p ${{ github.workspace }}/deps/build
           mkdir -p ${{ github.workspace }}/deps/build/destdir
+          chmod +x ${{ steps.detect_build_script.outputs.build_script }}
+          sudo ./${{ steps.detect_build_script.outputs.build_script }} -ur
+
+      - name: Build dependencies
+        shell: bash
+        run: |
           sudo ./${{ steps.detect_build_script.outputs.build_script }} -dr
 
       - name: Build slicer
