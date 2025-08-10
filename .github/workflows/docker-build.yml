@@ -27,7 +27,8 @@ jobs:
             echo "RELEASE_VERSION=$LATEST_RELEASE" >> $GITHUB_OUTPUT
           fi
       - name: Clone repository
-        run: git clone --branch ${{ steps.get_version.outputs.RELEASE_VERSION }} https://github.com/softfever/orcaslicer.git .
+        # run: git clone --branch ${{ steps.get_version.outputs.RELEASE_VERSION }} https://github.com/softfever/orcaslicer.git .
+        run: wget https://github.com/SoftFever/OrcaSlicer/archive/refs/tags/${{ steps.get_version.outputs.RELEASE_VERSION }}.tar.gz -O ./OrcaSlicer.tar.gz && tar -xzvf ./OrcaSlicer.tar.gz --strip-components=1
 
       - uses: lukka/get-cmake@latest
         with:
@@ -54,10 +55,6 @@ jobs:
             exit 1
           fi
 
-      - name: Run build script
-        run: |
-          chmod +x ${{ steps.detect_build_script.outputs.build_script }}
-          sudo ./${{ steps.detect_build_script.outputs.build_script }} -ur
       - name: Install dependencies from build_linux.sh
         shell: bash
         run: |
