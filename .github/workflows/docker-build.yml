@@ -44,6 +44,6 @@ jobs:
         run: |
           docker buildx build --platform linux/arm64 \
             --build-arg VERSION=latest \
-            --build-arg QEMU_CPU_CORES=2 \ # Limit emulated cores if using QEMU
+            --build-arg QEMU_CPU_CORES=2 \
             -t matszwe02/orcaslicer-arm:latest \
             --push .
