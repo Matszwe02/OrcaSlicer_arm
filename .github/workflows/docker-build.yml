@@ -137,6 +137,7 @@ jobs:
           cp -r ./downloaded_artifact/* .
           docker buildx build --platform linux/arm64 \
             --build-arg VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} \
+            -f Dockerfile.precompiled \
             -t matszwe02/orcaslicer-arm:${{ steps.get_version.outputs.RELEASE_VERSION }} \
             -t latest \
             --push .
