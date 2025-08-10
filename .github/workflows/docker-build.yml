@@ -56,7 +56,7 @@ jobs:
           sed -i '/-DBUILD_SHARED_LIBS=0/a\       -DDOWNLOAD_NO_VERIFY=ON' deps/OpenCV/OpenCV.cmake && \
           sed -i '/CMAKE_ARGS/a\        -DDOWNLOAD_NO_VERIFY=ON' deps/wxWidgets/wxWidgets.cmake && \
           sed -i '/project(OrcaSlicer-deps)/a set(DEP_CMAKE_OPTS "${DEP_CMAKE_OPTS} -DDOWNLOAD_NO_VERIFY=ON")' deps/CMakeLists.txt && \
-          sed -i 's|BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON"|BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON -DDOWNLOAD_NO_VERIFY=ON"|' ${{ steps.detect_build_script.outputs.build_script }} && \
+          sed -i 's|-DDEP_WX_GTK3=ON"|-DDEP_WX_GTK3=ON -DDOWNLOAD_NO_VERIFY=ON"|' ${{ steps.detect_build_script.outputs.build_script }} && \
           cat deps/wxWidgets/wxWidgets.cmake && \
           cat deps/OpenCV/OpenCV.cmake && \
           cat deps/CMakeLists.txt && \
