@@ -12,23 +12,59 @@ on:
 
 jobs:
   build-orcaslicer-artifact:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     outputs:
-      artifact_name: ${{ steps.call-build.outputs.artifact_name }}
-      artifact_path: ${{ steps.call-build.outputs.artifact_path }}
+      artifact_name: OrcaSlicer_Linux_arm64
+      artifact_path: ./build/package
     steps:
-      - name: Call OrcaSlicer Build Workflow
-        id: call-build
-        uses: ./.github/workflows/build-orcaslicer.yml
+      - name: Clone repository
+        run: git clone https://github.com/softfever/orcaslicer.git .
+
+      - uses: lukka/get-cmake@latest
         with:
-          secrets: inherit # Pass all secrets to the called workflow
+          cmakeVersion: "~3.28"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf build-essential cmake curl eglexternalplatform-dev \
+          extra-cmake-modules file git libcairo2-dev libcurl4-openssl-dev libdbus-1-dev libglew-dev libglu1-mesa-dev \
+          libgstreamer1.0-dev libgstreamerd-3-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev \
+          libgtk-3-dev libmspack-dev libsecret-1-dev libsoup2.4-dev libssl-dev libudev-dev libwayland-dev \
+          libwebkit2gtk-4.1-dev libxkbcommon-dev locales locales-all m4 pkgconf sudo wayland-protocols wget libfuse2t64
+
+      - name: Install dependencies from build_linux.sh
+        shell: bash
+        run: sudo ./build_linux.sh -ur
+
+      - name: Fix permissions
+        shell: bash
+        run: sudo chown $USER -R ./
+
+      - name: Build dependencies
+        shell: bash
+        run: |
+          mkdir -p ${{ github.workspace }}/deps/build
+          mkdir -p ${{ github.workspace }}/deps/build/destdir
+          ./build_linux.sh -dr
+
+      - name: Build slicer
+        shell: bash
+        env:
+          CMAKE_PREFIX_PATH: ${{ github.workspace }}/deps/build/destdir/usr/local
+        run: ./build_linux.sh -sr
+
+      - name: Upload artifacts Ubuntu
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrcaSlicer_Linux_arm64
+          path: ./build/package
 
   build-and-push:
     needs: build-orcaslicer-artifact
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -74,7 +110,6 @@ jobs:
       - name: Build and push Docker image (release)
         if: steps.check_image.outputs.SKIP_BUILD == 'false'
         run: |
-          # Copy the downloaded artifact contents to the Docker build context
           cp -r ./downloaded_artifact/* .
           docker buildx build --platform linux/arm64 \
             --build-arg VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} \
