@@ -9,10 +9,6 @@ on:
         description: 'OrcaSlicer Release Tag to build'
         required: false
         type: string
-      packages:
-        description: 'packages to install'
-        required: true
-        type: string
 
 jobs:
   build-orcaslicer-artifact:
@@ -41,7 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ${{ github.event.inputs.packages }}
+          sudo apt-get install -y libfuse-dev m4 libunwind-dev libgstreamer1.0-dev
 
       - name: Detect build script
         id: detect_build_script
@@ -54,6 +50,10 @@ jobs:
             echo "No build script found!"
             exit 1
           fi
+
+      - name: Patch install script
+        run: |
+          sed -i 's|BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON"|BUILD_ARGS="${DEPS_EXTRA_BUILD_ARGS} -DDEP_WX_GTK3=ON -DCMAKE_SKIP_DOWNLOAD_VERIFY_HASH=ON"|g' ./${{ steps.detect_build_script.outputs.build_script }}
 
       - name: Fix permissions
         shell: bash
