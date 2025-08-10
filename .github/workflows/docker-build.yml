@@ -26,10 +26,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Monitor resources in real time
+      - name: Monitor resources and build in parallel
         run: |
-          nohup bash -c '
-            echo "Timestamp,CPU(%),Memory(MB),Disk(%)"
+          bash -c '
+            # Start monitor
             while true; do
               ts=$(date "+%Y-%m-%d %H:%M:%S")
               cpu=$(top -b -n1 | grep "Cpu(s)" | awk "{print \$2+\$4}")
@@ -38,12 +38,13 @@ jobs:
               echo "$ts,$cpu,$mem,$disk"
               sleep 5
             done
-          ' > /dev/stdout &
-
-      - name: Build and push Docker image
-        run: |
+          ' &
+          MONITOR_PID=$!
+          # Run build
           docker buildx build --platform linux/arm64 \
             --build-arg VERSION=latest \
             --build-arg QEMU_CPU_CORES=2 \
             -t matszwe02/orcaslicer-arm:latest \
             --push .
+          # Kill monitor when done
+          kill $MONITOR_PID
