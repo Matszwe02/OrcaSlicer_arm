@@ -1,0 +1,43 @@
+name: Build OrcaSlicer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_orcaslicer:
+    name: Build OrcaSlicer
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - name: Clone repository
+        run: git clone https://github.com/softfever/orcaslicer.git .
+
+      - uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: "~3.2"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y autoconf build-essential cmake curl eglexternalplatform-dev \
+          extra-cmake-modules file git libcairo2-dev libcurl4-openssl-dev libdbus-1-dev libglew-dev libglu1-mesa-dev \
+          libglu1-mesa-dev libgstreamer1.0-dev libgstreamerd-3-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev \
+          libgtk-3-dev libgtk-3-dev libmspack-dev libsecret-1-dev libsoup2.4-dev libssl-dev libudev-dev libwayland-dev \
+          libwebkit2gtk-4.1-dev libxkbcommon-dev locales locales-all m4 pkgconf sudo wayland-protocols wget libfuse2t64
+
+      - name: Install dependencies from build_linux.sh
+        shell: bash
+        run: sudo ./build_linux.sh -ur
+
+      - name: Fix permissions
+        shell: bash
+        run: sudo chown $USER -R ./
+
+      - name: Build slicer
+        shell: bash
+        run: ./build_linux.sh -sr
+
+      - name: Upload artifacts Ubuntu
+        uses: actions/upload-artifact@v4
+        with:
+          name: OrcaSlicer_Linux_arm64
+          path: ./build/OrcaSlicer
