@@ -51,11 +51,6 @@ jobs:
             exit 1
           fi
 
-      - name: Patch install script
-        run: |
-          sed -i 's|cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS}|cmake -S deps -B deps/build ${CMAKE_C_CXX_COMPILER_CLANG} -G Ninja ${COLORED_OUTPUT} ${BUILD_ARGS} -DCMAKE_SKIP_DOWNLOAD_VERIFY_HASH=ON|g' ./${{ steps.detect_build_script.outputs.build_script }} && \
-          cat ./${{ steps.detect_build_script.outputs.build_script }}
-
       - name: Fix permissions
         shell: bash
         run: sudo chown $USER -R ./
@@ -66,11 +61,13 @@ jobs:
           mkdir -p ${{ github.workspace }}/deps/build
           mkdir -p ${{ github.workspace }}/deps/build/destdir
           chmod +x ${{ steps.detect_build_script.outputs.build_script }}
+          DEPS_EXTRA_BUILD_ARGS=-DCMAKE_SKIP_DOWNLOAD_VERIFY_HASH=ON
           sudo ./${{ steps.detect_build_script.outputs.build_script }} -ur
 
       - name: Build dependencies
         shell: bash
         run: |
+          DEPS_EXTRA_BUILD_ARGS=-DCMAKE_SKIP_DOWNLOAD_VERIFY_HASH=ON
           sudo ./${{ steps.detect_build_script.outputs.build_script }} -dr
 
       - name: Build slicer
