@@ -28,7 +28,7 @@ jobs:
           fi
       - name: Clone repository
         # run: git clone https://github.com/softfever/orcaslicer.git .
-        run: wget https://github.com/SoftFever/OrcaSlicer/archive/refs/tags/${{ steps.get_version.outputs.RELEASE_VERSION }}.tar.gz -O /opt/OrcaSlicer.tar.gz && tar -xzvf /opt/OrcaSlicer.tar.gz .
+        run: wget https://github.com/SoftFever/OrcaSlicer/archive/refs/tags/${{ steps.get_version.outputs.RELEASE_VERSION }}.tar.gz -O /opt/OrcaSlicer.tar.gz && tar -xzvf /opt/OrcaSlicer.tar.gz --strip-components=1 -C .
 
       - uses: lukka/get-cmake@latest
         with:
@@ -124,4 +124,5 @@ jobs:
           docker buildx build --platform linux/arm64 \
             --build-arg VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} \
             -t matszwe02/orcaslicer-arm:${{ steps.get_version.outputs.RELEASE_VERSION }} \
+            -t latest \
             --push .
