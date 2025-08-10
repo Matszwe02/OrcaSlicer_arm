@@ -51,6 +51,11 @@ jobs:
             exit 1
           fi
 
+      - name: Patch install script
+        run: |
+          sed -i '/-DBUILD_SHARED_LIBS=0/a\       -DDOWNLOAD_NO_VERIFY=ON' deps/OpenCV/OpenCV.cmake && \
+          cat deps/OpenCV/OpenCV.cmake
+
       - name: Fix permissions
         shell: bash
         run: sudo chown $USER -R ./
@@ -67,7 +72,6 @@ jobs:
       - name: Build dependencies
         shell: bash
         run: |
-          DEPS_EXTRA_BUILD_ARGS=-DCMAKE_SKIP_DOWNLOAD_VERIFY_HASH=ON
           sudo ./${{ steps.detect_build_script.outputs.build_script }} -dr
 
       - name: Build slicer
