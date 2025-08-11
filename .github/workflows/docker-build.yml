@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-24.04-arm
     outputs:
       artifact_name: OrcaSlicer_Linux_arm64
-      artifact_path: ./build/package
+      artifact_path: ./build
     steps:
       - name: Get OrcaSlicer release version
         id: get_version
@@ -132,7 +132,7 @@ jobs:
         if: steps.check_image.outputs.SKIP_BUILD == 'false'
         run: |
           cp -r ./downloaded_artifact/* .
-          sudo apt-get update && sudo apt-get install -y tree && tree -dfL 3
+          sudo apt-get update && sudo apt-get install -y tree && tree -L 3
           docker buildx build --platform linux/arm64 \
             --build-arg VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} \
             -f Dockerfile.precompiled \
