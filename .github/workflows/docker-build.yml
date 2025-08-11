@@ -131,7 +131,8 @@ jobs:
       - name: Build and push Docker image (release)
         if: steps.check_image.outputs.SKIP_BUILD == 'false'
         run: |
-          cp -r ./downloaded_artifact/* .
+          mkdir ./package
+          cp -r ./downloaded_artifact/* ./package
           sudo apt-get update && sudo apt-get install -y tree && tree -L 3
           docker buildx build --platform linux/arm64 \
             --build-arg VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} \
