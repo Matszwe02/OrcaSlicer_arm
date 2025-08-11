@@ -58,6 +58,11 @@ jobs:
             sed -i '/URL_HASH SHA256=c56edfacef0a60c0de3e6489194fcb2f24c03dbb550a8a7de5938642d045bd32/d' deps/TIFF/TIFF.cmake
             echo "Fixing that dumb TIFF dependency"
           fi
+          if [ -f deps/MPFR/MPFR.cmake ]; then
+            sed -i 's|https://www.mpfr.org/mpfr-current/mpfr-4.2.1.tar.bz2|https://www.mpfr.org/mpfr-current/mpfr-4.2.2.tar.bz2|g' deps/MPFR/MPFR.cmake
+            sed -i '/URL_HASH SHA256=b9df93635b20e4089c29623b19420c4ac848a1b29df1cfd59f26cab0d2666aa0/d' deps/MPFR/MPFR.cmake
+            echo "Updating MPFR dependency to 4.2.2 and removing hash check"
+          fi
 
       - name: Fix permissions
         shell: bash
