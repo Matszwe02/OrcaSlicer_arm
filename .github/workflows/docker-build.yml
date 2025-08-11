@@ -120,8 +120,12 @@ jobs:
       - name: Check if release image already exists
         id: check_image
         run: |
-          if docker manifest inspect matszwe02/orcaslicer-arm:${{ steps.get_version.outputs.RELEASE_VERSION }} >/dev/null 2>&1; then
-            echo "${{ steps.get_version.outputs.RELEASE_VERSION }} already built"
+          RELEASE_VERSION="${{ steps.get_version.outputs.RELEASE_VERSION }}"
+          if [ "$RELEASE_VERSION" = "nightly-builds" ]; then
+            echo "Release tag is nightly-builds, forcing SKIP_BUILD=false"
+            echo "SKIP_BUILD=false" >> $GITHUB_OUTPUT
+          elif docker manifest inspect matszwe02/orcaslicer-arm:$RELEASE_VERSION >/dev/null 2>&1; then
+            echo "$RELEASE_VERSION already built"
             echo "SKIP_BUILD=true" >> $GITHUB_OUTPUT
           else
             echo "SKIP_BUILD=false" >> $GITHUB_OUTPUT
@@ -138,5 +142,5 @@ jobs:
             --build-arg VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} \
             -f Dockerfile.precompiled \
             -t matszwe02/orcaslicer-arm:${{ steps.get_version.outputs.RELEASE_VERSION }} \
-            -t latest \
+            -t matszwe02/orcaslicer-arm:latest \
             --push .
