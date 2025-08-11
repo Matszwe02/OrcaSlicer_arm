@@ -9,14 +9,10 @@ on:
         description: 'OrcaSlicer Release Tag to build'
         required: false
         type: string
-      patch_script:
-        description: 'patch script'
-        required: true
-        type: string
 
 jobs:
   build-orcaslicer-artifact:
-    runs-on: ubuntu-22.04-arm
+    runs-on: ubuntu-24.04-arm
     outputs:
       artifact_name: OrcaSlicer_Linux_arm64
       artifact_path: ./build/package
@@ -54,10 +50,6 @@ jobs:
             echo "No build script found!"
             exit 1
           fi
-
-      - name: Patch install script
-        run: |
-          ${{ github.event.inputs.patch_script }}
 
       - name: Fix permissions
         shell: bash
@@ -140,6 +132,7 @@ jobs:
         if: steps.check_image.outputs.SKIP_BUILD == 'false'
         run: |
           cp -r ./downloaded_artifact/* .
+          ls
           docker buildx build --platform linux/arm64 \
             --build-arg VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} \
             -f Dockerfile.precompiled \
