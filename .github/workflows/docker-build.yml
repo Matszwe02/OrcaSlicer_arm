@@ -132,7 +132,7 @@ jobs:
         if: steps.check_image.outputs.SKIP_BUILD == 'false'
         run: |
           cp -r ./downloaded_artifact/* .
-          ls
+          sudo apt-get update && sudo apt-get install -y tree && tree -dfL 3
           docker buildx build --platform linux/arm64 \
             --build-arg VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} \
             -f Dockerfile.precompiled \
