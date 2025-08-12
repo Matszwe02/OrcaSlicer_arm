@@ -37,8 +37,7 @@ jobs:
         run: |
           RELEASE_VERSION="${{ steps.get_version.outputs.RELEASE_VERSION }}"
           echo "Checking if Docker image for version $RELEASE_VERSION already exists..."
-          if [ "$RELEASE_VERSION" = "nightly-builds" ]; then
-          elif docker manifest inspect matszwe02/orcaslicer-arm:$RELEASE_VERSION >/dev/null 2>&1; then
+          if docker manifest inspect matszwe02/orcaslicer-arm:$RELEASE_VERSION >/dev/null 2>&1; then
             echo "$RELEASE_VERSION already built. Building nightly-builds."
             echo "RELEASE_VERSION=nightly-builds" >> $GITHUB_OUTPUT
           fi
