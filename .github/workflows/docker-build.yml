@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       RELEASE_VERSION: ${{ steps.get_version.outputs.RELEASE_VERSION }}
+      SKIP_BUILD: ${{ steps.check_image.outputs.SKIP_BUILD }}
     steps:
       - name: Get OrcaSlicer release version
         id: get_version
@@ -32,12 +33,30 @@ jobs:
           echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           echo "Set RELEASE_VERSION to $RELEASE_VERSION"
 
+      - name: Check if release image already exists
+        id: check_image
+        run: |
+          RELEASE_VERSION="${{ steps.get_version.outputs.RELEASE_VERSION }}"
+          echo "Checking if Docker image for version $RELEASE_VERSION already exists..."
+          if [ "$RELEASE_VERSION" = "nightly-builds" ]; then
+            echo "Release tag is nightly-builds, forcing SKIP_BUILD=false"
+            echo "SKIP_BUILD=false" >> $GITHUB_OUTPUT
+          elif docker manifest inspect matszwe02/orcaslicer-arm:$RELEASE_VERSION >/dev/null 2>&1; then
+            echo "$RELEASE_VERSION already built"
+            echo "SKIP_BUILD=true" >> $GITHUB_OUTPUT
+          else
+            echo "Image for $RELEASE_VERSION not found, proceeding with build."
+            echo "SKIP_BUILD=false" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+
   build-orcaslicer-artifact:
     needs: get-release-version
     runs-on: ubuntu-24.04-arm
     outputs:
       artifact_name: OrcaSlicer_Linux_arm64
       artifact_path: ./build
+    if: needs.get-release-version.outputs.SKIP_BUILD == 'false'
     steps:
       - name: Clone repository
         run: wget https://github.com/SoftFever/OrcaSlicer/archive/refs/tags/${{ needs.get-release-version.outputs.RELEASE_VERSION }}.tar.gz -O ./OrcaSlicer.tar.gz && tar -xzvf ./OrcaSlicer.tar.gz --strip-components=1
@@ -111,6 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    if: needs.get-release-version.outputs.SKIP_BUILD == 'false'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -132,25 +152,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Check if release image already exists
-        id: check_image
-        run: |
-          RELEASE_VERSION="${{ needs.get-release-version.outputs.RELEASE_VERSION }}"
-          echo "Checking if Docker image for version $RELEASE_VERSION already exists..."
-          if [ "$RELEASE_VERSION" = "nightly-builds" ]; then
-            echo "Release tag is nightly-builds, forcing SKIP_BUILD=false"
-            echo "SKIP_BUILD=false" >> $GITHUB_OUTPUT
-          elif docker manifest inspect matszwe02/orcaslicer-arm:$RELEASE_VERSION >/dev/null 2>&1; then
-            echo "$RELEASE_VERSION already built"
-            echo "SKIP_BUILD=true" >> $GITHUB_OUTPUT
-          else
-            echo "Image for $RELEASE_VERSION not found, proceeding with build."
-            echo "SKIP_BUILD=false" >> $GITHUB_OUTPUT
-          fi
-        continue-on-error: true
-
       - name: Build and push Docker image (release)
-        if: steps.check_image.outputs.SKIP_BUILD == 'false'
         run: |
           mkdir ./package
           cp -r ./downloaded_artifact/* ./package
