@@ -11,24 +11,36 @@ on:
         type: string
 
 jobs:
+  get-release-version:
+    runs-on: ubuntu-latest
+    outputs:
+      RELEASE_VERSION: ${{ steps.get_version.outputs.RELEASE_VERSION }}
+    steps:
+      - name: Get OrcaSlicer release version
+        id: get_version
+        run: |
+          echo "Checking for release tag input..."
+          if [ -n "${{ github.event.inputs.release_tag }}" ]; then
+            RELEASE_VERSION="${{ github.event.inputs.release_tag }}"
+            echo "Using release tag from input: $RELEASE_VERSION"
+          else
+            echo "Fetching latest release from GitHub API..."
+            LATEST_RELEASE=$(wget -q -O- "https://api.github.com/repos/SoftFever/OrcaSlicer/releases/latest" | grep -oP '"tag_name": "\K(.*?)",$' | head -n 1 | sed 's/",$//')
+            RELEASE_VERSION="$LATEST_RELEASE"
+            echo "Latest release found: $RELEASE_VERSION"
+          fi
+          echo "RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_OUTPUT
+          echo "Set RELEASE_VERSION to $RELEASE_VERSION"
+
   build-orcaslicer-artifact:
+    needs: get-release-version
     runs-on: ubuntu-24.04-arm
     outputs:
       artifact_name: OrcaSlicer_Linux_arm64
       artifact_path: ./build
     steps:
-      - name: Get OrcaSlicer release version
-        id: get_version
-        run: |
-          if [ -n "${{ github.event.inputs.release_tag }}" ]; then
-            echo "RELEASE_VERSION=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
-          else
-            LATEST_RELEASE=$(wget -q -O- "https://api.github.com/repos/SoftFever/OrcaSlicer/releases/latest" | grep -oP '"tag_name": "\K(.*?)",$' | head -n 1 | sed 's/",$//')
-            echo "RELEASE_VERSION=$LATEST_RELEASE" >> $GITHUB_OUTPUT
-          fi
       - name: Clone repository
-        # run: git clone --branch ${{ steps.get_version.outputs.RELEASE_VERSION }} https://github.com/softfever/orcaslicer.git .
-        run: wget https://github.com/SoftFever/OrcaSlicer/archive/refs/tags/${{ steps.get_version.outputs.RELEASE_VERSION }}.tar.gz -O ./OrcaSlicer.tar.gz && tar -xzvf ./OrcaSlicer.tar.gz --strip-components=1
+        run: wget https://github.com/SoftFever/OrcaSlicer/archive/refs/tags/${{ needs.get-release-version.outputs.RELEASE_VERSION }}.tar.gz -O ./OrcaSlicer.tar.gz && tar -xzvf ./OrcaSlicer.tar.gz --strip-components=1
 
       - uses: lukka/get-cmake@latest
         with:
@@ -95,23 +107,13 @@ jobs:
           path: ./build/package
 
   build-and-push:
-    needs: build-orcaslicer-artifact
+    needs: [build-orcaslicer-artifact, get-release-version]
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Get OrcaSlicer release version
-        id: get_version
-        run: |
-          if [ -n "${{ github.event.inputs.release_tag }}" ]; then
-            echo "RELEASE_VERSION=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
-          else
-            LATEST_RELEASE=$(wget -q -O- "https://api.github.com/repos/SoftFever/OrcaSlicer/releases/latest" | grep -oP '"tag_name": "\K(.*?)",$' | head -n 1 | sed 's/",$//')
-            echo "RELEASE_VERSION=$LATEST_RELEASE" >> $GITHUB_OUTPUT
-          fi
 
       - name: Download OrcaSlicer artifact
         uses: actions/download-artifact@v4
@@ -133,7 +135,8 @@ jobs:
       - name: Check if release image already exists
         id: check_image
         run: |
-          RELEASE_VERSION="${{ steps.get_version.outputs.RELEASE_VERSION }}"
+          RELEASE_VERSION="${{ needs.get-release-version.outputs.RELEASE_VERSION }}"
+          echo "Checking if Docker image for version $RELEASE_VERSION already exists..."
           if [ "$RELEASE_VERSION" = "nightly-builds" ]; then
             echo "Release tag is nightly-builds, forcing SKIP_BUILD=false"
             echo "SKIP_BUILD=false" >> $GITHUB_OUTPUT
@@ -141,6 +144,7 @@ jobs:
             echo "$RELEASE_VERSION already built"
             echo "SKIP_BUILD=true" >> $GITHUB_OUTPUT
           else
+            echo "Image for $RELEASE_VERSION not found, proceeding with build."
             echo "SKIP_BUILD=false" >> $GITHUB_OUTPUT
           fi
         continue-on-error: true
@@ -152,8 +156,8 @@ jobs:
           cp -r ./downloaded_artifact/* ./package
           sudo apt-get update && sudo apt-get install -y tree && tree -L 3
           docker buildx build --platform linux/arm64 \
-            --build-arg VERSION=${{ steps.get_version.outputs.RELEASE_VERSION }} \
+            --build-arg VERSION=${{ needs.get-release-version.outputs.RELEASE_VERSION }} \
             -f Dockerfile.precompiled \
-            -t matszwe02/orcaslicer-arm:${{ steps.get_version.outputs.RELEASE_VERSION }} \
+            -t matszwe02/orcaslicer-arm:${{ needs.get-release-version.outputs.RELEASE_VERSION }} \
             -t matszwe02/orcaslicer-arm:latest \
             --push .
