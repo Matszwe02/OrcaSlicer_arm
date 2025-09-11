@@ -25,7 +25,7 @@ WORKDIR /opt/OrcaSlicer
 RUN ./build_linux.sh -u
 RUN set -x && ./build_linux.sh -d
 RUN ./build_linux.sh -sr
-
+RUN cp /opt/OrcaSlicer/resources/images/OrcaSlicer.png /opt/OrcaSlicer/build/package/icon.png
 RUN chown 1000:0 /opt/OrcaSlicer/build/package/bin/orca-slicer
 
 FROM ghcr.io/linuxserver/baseimage-kasmvnc:arm64v8-ubuntunoble-8076605d-ls70
@@ -48,7 +48,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=BUILDER /opt/OrcaSlicer/build/package /opt/orca-slicer
 
-RUN curl -o /kclient/public/icon.png https://raw.githubusercontent.com/SoftFever/OrcaSlicer/main/resources/images/OrcaSlicer.png \
+RUN cp /opt/orca-slicer/icon.png /kclient/public/icon.png \
     touch /orcaslicer_init && echo '#!/bin/sh -e' > /orcaslicer_init && echo "while true; do /opt/orca-slicer/bin/orca-slicer; done;" >> /orcaslicer_init && chmod +x /orcaslicer_init \
     sed -i '/server {/,$!b;/location \/ {/i   location /favicon.ico {\n    alias /kclient/public/icon.png;\n  }' /defaults/default.conf \
     sed -i "/# root, can be a normal user)./a chown -R abc:abc /config/.config/OrcaSlicer" /init

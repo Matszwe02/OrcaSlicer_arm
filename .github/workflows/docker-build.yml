@@ -112,7 +112,9 @@ jobs:
         shell: bash
         env:
           CMAKE_PREFIX_PATH: ${{ github.workspace }}/deps/build/destdir/usr/local
-        run: sudo ./${{ steps.detect_build_script.outputs.build_script }} -sr
+        run: |
+          sudo ./${{ steps.detect_build_script.outputs.build_script }} -sr
+          cp resources/images/OrcaSlicer.png build/package/icon.png
 
       - name: Upload artifacts Ubuntu
         uses: actions/upload-artifact@v4
