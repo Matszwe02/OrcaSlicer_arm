@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openbox_menu xmlns="http://openbox.org/3.4/menu">
 <menu id="root-menu" label="MENU">
-<item label="OrcaSlicer" icon="/kclient/public/icon.png"><action name="Execute"><command>/opt/orca-slicer/bin/orca-slicer</command></action></item>
+<item label="OrcaSlicer" icon="/opt/orca-slicer/icon.png"><action name="Execute"><command>/opt/orca-slicer/bin/orca-slicer</command></action></item>
 </menu>
 </openbox_menu>
