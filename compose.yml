@@ -1,6 +1,7 @@
 services:
   orcaslicer:
-    build: .
+    # build: .
+    image: matszwe02/orcaslicer-arm:v2.3.0
     platform: linux/arm64
     ports:
       - 3000:3000
@@ -8,6 +9,6 @@ services:
     devices:
       - /dev/dri:/dev/dri
     volumes:
-      - ./orca-config:/config/.config/OrcaSlicer
+      - ./config:/config/.config/OrcaSlicer
     cap_add:
       - SYS_NICE
