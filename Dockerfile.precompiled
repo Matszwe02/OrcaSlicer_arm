@@ -18,7 +18,10 @@ RUN apt-get update && apt-get install -y \
 
 COPY ./package /opt/orca-slicer
 
-RUN touch /orcaslicer_init && echo '#!/bin/sh -e' > /orcaslicer_init && echo "while true; do /opt/orca-slicer/bin/orca-slicer; done;" >> /orcaslicer_init && chmod +x /orcaslicer_init && \
+RUN touch /orcaslicer_init && echo '#!/bin/sh -e' > /orcaslicer_init && \
+    echo "while true; do /opt/orca-slicer/bin/orca-slicer; done;" >> /orcaslicer_init && \
+    chmod +x /orcaslicer_init && \
+    chmod +x /opt/orca-slicer/bin/orca-slicer && \
     sed -i '/server {/,$!b;/location \/ {/i   location /favicon.ico {\n    alias /opt/orca-slicer/icon.png;\n  }' /defaults/default.conf && \
     sed -i "/# root, can be a normal user)./a chown -R abc:abc /config/.config/OrcaSlicer" /init
 
