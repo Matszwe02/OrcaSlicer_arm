@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY ./package /opt/orca-slicer
 
-RUN curl -o /kclient/public/icon.png https://raw.githubusercontent.com/SoftFever/OrcaSlicer/main/resources/images/OrcaSlicer.png \
+RUN cp /opt/orca-slicer/icon.png /kclient/public/icon.png \
     touch /orcaslicer_init && echo '#!/bin/sh -e' > /orcaslicer_init && echo "while true; do /opt/orca-slicer/bin/orca-slicer; done;" >> /orcaslicer_init && chmod +x /orcaslicer_init \
     sed -i '/server {/,$!b;/location \/ {/i   location /favicon.ico {\n    alias /kclient/public/icon.png;\n  }' /defaults/default.conf \
     sed -i "/# root, can be a normal user)./a chown -R abc:abc /config/.config/OrcaSlicer" /init
