@@ -153,16 +153,16 @@ jobs:
           name: ${{ needs.build-orcaslicer-artifact.outputs.artifact_name }}
           path: ./downloaded_artifact
 
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
         with:
           driver: docker-container
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker image (release)
         run: |
