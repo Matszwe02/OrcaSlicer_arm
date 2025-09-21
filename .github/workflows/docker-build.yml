@@ -2,7 +2,7 @@ name: Build Docker Image
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Run daily at midnight UTC
+    - cron: '0 0 */2 * *' # Run every two days at midnight UTC
   workflow_dispatch:
     inputs:
       release_tag:
