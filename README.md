@@ -36,4 +36,4 @@ services:
       - SYS_NICE
 ```
 
-Repo should run daily nightly builds plus release builds, specifying `latest` tag will pull nightly builds.
+Repo should run nightly builds every 2 days plus release builds, specifying `latest` tag will pull nightly builds.
