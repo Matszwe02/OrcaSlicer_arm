@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y \
     libdbus-1-dev \
     --no-install-recommends
 
-RUN git clone https://github.com/SoftFever/OrcaSlicer.git --depth 1 /opt/OrcaSlicer
+RUN git clone https://github.com/OrcaSlicer/OrcaSlicer.git --depth 1 /opt/OrcaSlicer
 WORKDIR /opt/OrcaSlicer
 
 # RUN sed -i 's/libwebkit2gtk-4.0-dev/libwebkit2gtk-4.*-dev/' linux.d/debian
