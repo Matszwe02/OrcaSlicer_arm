@@ -4,6 +4,11 @@ OrcaSlicer that works in Raspberry Pi and other SBC
 
 I don't recommend running it on any SBC with less than 2GB of ram - the container itself may use around 2GB RAM. For less than 4GB of ram it is very recommended to create a 4GB swapfile, as without it the app may hang up your computer.
 
+**Compatibility Warning**\
+As for v2.3.2 OrcaSlicer bumped OpenGL version. If you see an error "libvgcode requires an opengl context based on opengl 3.2 or higher", G-Code preview won't work with hardware rendering, which affects all RPIs, and software rendering is mostly not viable for their compute power. You can follow this discussion:
+https://github.com/prusa3d/PrusaSlicer/issues/12334
+
+
 ```sh
 if ! swapon --show | grep /swapfile &> /dev/null # Remove old swapfile, systems may init with small (500MB) swapfile
 then
