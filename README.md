@@ -10,7 +10,7 @@ https://github.com/prusa3d/PrusaSlicer/issues/12334
 
 
 ```sh
-if ! swapon --show | grep /swapfile &> /dev/null # Remove old swapfile, systems may init with small (500MB) swapfile
+if swapon --show | grep /swapfile &> /dev/null # Remove old swapfile, systems may init with small (500MB) swapfile
 then
     sudo swapoff /swapfile
     sudo rm /swapfile
